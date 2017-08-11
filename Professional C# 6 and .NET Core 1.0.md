@@ -42,3 +42,23 @@
     }
     ```
 
+## Chapter 2: Core C#
+
+1. INITIALIZING VARIABLES: C# has two methods for ensuring that variables are initialized before use
+    - Variables that are fields in a class or struct, if not initialized explicitly, are by default zeroed out when they are created
+    - Variables that are local to a method must be explicitly initialized in your code prior to any statements in which their values are used
+
+2. VARIABLE SCOPE:
+    - local variables with the same name can’t be declared twice in the same scope.
+
+3. Constants:
+    - They must be initialized when they are declared. After a value has been assigned, it can never be overwritten.
+    - The value of a constant must be computable at compile time. Therefore, you can’t initialize a constant with a value taken from a variable. If you need to do this, you must use a read-only field (this is explained in Chapter 3).
+    - Constants are always implicitly static. However, notice that you don’t have to (and, in fact, are not permitted to) include the static modifier in the constant declaration.
+
+4. Decimal Type 128-bit, high-precision decimal notation To specify that your number is a decimal type rather than a double, a float, or an integer, you can append the M (or m) character to the value, as shown here:
+    ```csharp
+    decimal d = 12.30M;
+    ```
+
+5. Character Type: 
