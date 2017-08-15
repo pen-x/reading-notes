@@ -177,23 +177,23 @@ Notice:
 6. **Classes**:
     - Static class can contain only static members and cannot be instantiated.
     - An implementation of the Singleton pattern is shown in the following code snippet.
-    ```csharp
-    public class Singleton
-    {
-        private static Singleton s_instance;
-
-        private int _state;
-        private Singleton(int state)
+        ```csharp
+        public class Singleton
         {
-            _state = state;
-        }
+            private static Singleton s_instance;
 
-        public static Singleton Instance
-        {
-            get { return s_instance ?? (s_instance = new MySingleton(42); }
+            private int _state;
+            private Singleton(int state)
+            {
+                _state = state;
+            }
+
+            public static Singleton Instance
+            {
+                get { return s_instance ?? (s_instance = new MySingleton(42); }
+            }
         }
-    }
-    ```
+        ```
 
 7. **Readonly Members**: Can be assigned only on initializion or inside constructors
     - Readonly Fields
@@ -245,21 +245,21 @@ Notice:
         int number = (int)c2;
         ```
     - You can use an enum type to assign multiple options to a variable and not just one of the enum constants. To do this, the values assigned to the constants must be different bits, and the **Flags** attribute needs to be set with the enum.
-    ```csharp
-    [Flags]
-    public enum DaysOfWeek
-    {
-        Monday = 0x1,
-        Tuesday = 0x2,
-        Wednesday = 0x4,
-        Thursday = 0x8,
-        Friday = 0x10,
-        Saturday = 0x20,
-        Sunday = 0x40
-    }
-    DaysOfWeek mondayAndWednesday = DaysOfWeek.Monday | DaysOfWeek.Wednesday;
-    WriteLine(mondayAndWednesday);
-    ```
+        ```csharp
+        [Flags]
+        public enum DaysOfWeek
+        {
+            Monday = 0x1,
+            Tuesday = 0x2,
+            Wednesday = 0x4,
+            Thursday = 0x8,
+            Friday = 0x10,
+            Saturday = 0x20,
+            Sunday = 0x40
+        }
+        DaysOfWeek mondayAndWednesday = DaysOfWeek.Monday | DaysOfWeek.Wednesday;
+        WriteLine(mondayAndWednesday);
+        ```
 
 12. **Extension Methods**: Extension methods are static methods that can look like part of a class without actually being in the source code for the class. The **this** keyword is needed to match an extension method for a type.
     ```csharp
