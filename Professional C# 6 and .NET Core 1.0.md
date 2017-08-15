@@ -132,3 +132,144 @@ Notice:
         }
         #pragma warning restore 169
         ```
+
+## Chapter 3: Objects and Types
+
+1. **Access Modifiers for Properties**: C# allows the set and get accessors of a property to have differing access modifiers, but one of the accessors must follow the access level of the property. 
+    ```csharp
+    public string Name { get; private set; }
+    ```
+
+2. **Inline Code**: Some developers may be concerned that the previous sections have presented a number of situations in which standard C# coding practices have led to very small functions—for example, accessing a field via a property instead of directly. Will this hurt performance because of the overhead of the extra function call? The answer is no. The JIT compiler is designed to generate highly optimized code and will ruthlessly inline code as appropriate (in other words, it replaces function calls with inline code). A method or property whose implementation simply calls another method or returns a field will almost certainly be inlined.
+
+3. **Expression-Bodied Methods**: C# 6 gives a simplified syntax to method definitions: expression-bodied methods. You don’t need to write curly brackets and the return keyword with the new syntax. The operator => (the lambda operator) is used to distinguish the declaration of the left side of this operator to the implementation that is on the right side.
+    ```csharp
+    public bool IsSquare(Rectangle rect) => rect.Height == rect.Width;
+    ```
+
+4. **Method Arguments**: 
+    - Named Arguments: The compiler gets rid of the name and creates an invocation of the method just like the variable name would not be there.
+        ```csharp
+        public void MoveAndResize(int x, int y, int width, int height)
+
+        r.MoveAndResize(x: 30, y: 40, width: 20, height: 40);
+        ```
+    - Optional Arguments: You must supply a default value for optional parameters, which must be the last ones defined.
+        ```csharp
+        public void TestMethod(int n, int opt1 = 11, int opt2 = 22, int opt3 = 33)
+        {
+            WriteLine(n + opt1 + opt2 + opt3);
+        }
+        ```
+    - Variable Number of Arugments: Allow passing a variable number of arguments。
+        ```csharp
+        public void AnyNumberOfArguments(params int[] data) {}
+        
+        AnyNumberOfArguments(1);
+        AnyNumberOfArguments(1, 3, 5, 7, 11, 13);
+        ```
+
+5. **Static Constructors**:
+    - The static constructor can never take any parameters and can access only static members.
+    - It’s never called explicitly by any other C# code, but always by the .NET runtime when the class is loaded.
+    - The .NET runtime makes no guarantees about when a static constructor will be executed, what is guaranteed is that the static constructor will run at most once, and that it will be invoked before your code makes any reference to the class.
+
+6. **Classes**:
+    - Static class can contain only static members and cannot be instantiated.
+    - An implementation of the Singleton pattern is shown in the following code snippet.
+    ```csharp
+    public class Singleton
+    {
+        private static Singleton s_instance;
+
+        private int _state;
+        private Singleton(int state)
+        {
+            _state = state;
+        }
+
+        public static Singleton Instance
+        {
+            get { return s_instance ?? (s_instance = new MySingleton(42); }
+        }
+    }
+    ```
+
+7. **Readonly Members**: Can be assigned only on initializion or inside constructors
+    - Readonly Fields
+    - Readonly Properties: Simply omitting the set accessor from the property definition.
+        - Auto-implemented Readonly Properties
+            ```csharp
+            public string Id { get; } = Guid.NewGuid().ToString();
+            ```
+        - Expression-Bodied Properties (C# 6)
+            ```csharp
+            public string Id => Guid.NewGuid().ToString();
+            ```
+
+8. **Anonymous Types**: An anonymous type is simply a nameless class that inherits from object. 
+    ```csharp
+    var captain = new
+    {
+        FirstName ="James",
+        MiddleName ="T",
+        LastName ="Kirk"
+    };
+    ```
+
+9. **Structs**: 
+    - Structs are value types, not reference types. This means they are stored either in the stack or inline
+    - Structs do not support inheritance.
+    - Allocating memory for structs is very fast because this takes place inline or on the stack. The same is true when they go out of scope. Structs are cleaned up quickly and don’t need to wait on garbage collection. 
+    - Whenever you pass a struct as a parameter or assign a struct to another struct (as in A = B, where A and B are structs), the full contents of the struct are copied, whereas for a class only the reference is copied. (**however, you can avoid this performance loss by passing it as a ref parameter**)
+
+10. **Nulable Types**: 
+    - Passing a variable of int to int? always succeeds and is accepted from the compiler.
+    - int? cannot be directly assigned to int. This can fail, and thus a cast is required.
+    ```csharp
+    int x1 = 1;
+    int? x2 = x1;
+    int x3 = (int)x2;
+    ```
+
+11. **Enumerations**:
+    - By default, the type behind the enum type is an int, The values of the named constants are incremental values starting with 0, but they can be changed to other values:
+        ```csharp
+        public enum Color
+        {
+            Red = 1,
+            Green = 2,
+            Blue = 3
+        }
+        Color c2 = (Color)2;
+        int number = (int)c2;
+        ```
+    - You can use an enum type to assign multiple options to a variable and not just one of the enum constants. To do this, the values assigned to the constants must be different bits, and the **Flags** attribute needs to be set with the enum.
+    ```csharp
+    [Flags]
+    public enum DaysOfWeek
+    {
+        Monday = 0x1,
+        Tuesday = 0x2,
+        Wednesday = 0x4,
+        Thursday = 0x8,
+        Friday = 0x10,
+        Saturday = 0x20,
+        Sunday = 0x40
+    }
+    DaysOfWeek mondayAndWednesday = DaysOfWeek.Monday | DaysOfWeek.Wednesday;
+    WriteLine(mondayAndWednesday);
+    ```
+
+12. **Extension Methods**: Extension methods are static methods that can look like part of a class without actually being in the source code for the class. The **this** keyword is needed to match an extension method for a type.
+    ```csharp
+    public static int GetWordCount(this string s) => s.Split().Length;
+    ```
+
+13. **System.Object**: 
+    - ToString(): A fairly basic, quick-and-easy string representation.
+    - GetHashCode(): If objects are placed in a data structure known as a map (also known as a hash table or dictionary), it is used by classes that manipulate these structures to determine where to place an object in the structure.
+    - Equals(Object), Equals(Object, Object), ReferenceEquals(Object, Object): Measure equality.
+    - Finalize(): Called when a reference object is garbage collected to clean up resources. 
+    - GetType(): Returns an instance of a class derived from System.Type.
+    - MemberwiseClone(): Makes a copy of the object and returns a reference (or in the case of a value type, a boxed reference) to the copy.
