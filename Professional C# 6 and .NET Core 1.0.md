@@ -273,3 +273,15 @@ Notice:
     - Finalize(): Called when a reference object is garbage collected to clean up resources. 
     - GetType(): Returns an instance of a class derived from System.Type.
     - MemberwiseClone(): Makes a copy of the object and returns a reference (or in the case of a value type, a boxed reference) to the copy.
+
+## Chapter 4: Inheritance
+
+1. **Structs and Classes**
+    - Structs are always derived from System.ValueType. They can also be derived from any number of interfaces.
+    - Classes are always derived from either System.Object or a class that you choose. They can also be derived from any number of interfaces.
+
+2. **Virtual Methods**:
+    - By declaring a base class method as virtual, you allow the method to be overridden in any derived classes.
+    - It is also permitted to declare a property as virtual. 
+    - In C#, functions are not virtual by default but in Java, by contrast, all functions are virtual. 
+    - It requires you to declare when a derived class’s function overrides another function, using the **override** keyword.
