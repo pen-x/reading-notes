@@ -285,3 +285,48 @@ Notice:
     - It is also permitted to declare a property as virtual. 
     - In C#, functions are not virtual by default but in Java, by contrast, all functions are virtual. 
     - It requires you to declare when a derived class’s function overrides another function, using the **override** keyword.
+
+3. **Abstract Classes/Methods**:
+    - An abstract class cannot be instantiated, but can be assigned with its derived class instance.
+    - An abstract method does not have an implementation and must be overridden in any nonabstract derived class.
+    - An abstract method is automatically virtual.
+    - If any class contains any abstract methods, that class is also abstract and must be declared as such.
+    ```csharp
+    public abstract class Shape
+    {
+        public abstract void Resize(int width, int height);   // abstract method
+    }
+
+    public class Ellipse : Shape
+    {
+        public override void Resize(int width, int height)
+        {
+            Size.Width = width;
+            Size.Height = height;
+        }
+    }
+
+    Shape s1 = new Ellipse();
+    ```
+
+4. **Sealed Classes/Methods**:
+    - Adding the sealed modifier to a class doesn’t allow you to create a subclass of it.
+    - Sealing a method means it’s not possible to override this method.
+    - In order to use the sealed keyword on a method or property, it must have first been **overridden** from a base class. If you do not want a method or property in a base class overridden, then don’t mark it as virtual.
+
+5. **Access Modefiers**:
+    | Modifier | Applies to | Description |
+    | -------- | ---------- | ----------- |
+    | public | Any types or members | The item is visible to any other code. |
+    | protected | Any member of a type, and any nested type | The item is visible only to any derived type. |
+    | internal | Any types or members | The item is visible only within its containing assembly. |
+    | private | Any member of a type, and any nested type | The item is visible only inside the type to which it belongs. |
+    | protected internal | Any member of a type, and any nested type | The item is visible to any code within its containing assembly and to any code inside a derived type. |
+    - **Public**, **protected**, and **private** are **logical access modifiers**. 
+    - **Internal** is a **physical access modifier** whose boundary is an assembly.
+    - Cannot define types as protected, private, or protected internal because these visibility levels would be meaningless for a type contained in a namespace. Hence, these visibilities can be applied only to members.
+    - If you have a nested type, the inner type is always able to see all members of the outer type.
+
+6. **Is and As Operators**:
+    - The as operator works similar to the cast operator within the class hierarchy—it returns a reference to the object. However, it never throws an InvalidCastException. Instead, this operator returns null in case the object is not of the type asked for.
+    - Instead of using the as operator, you can use the is operator. The is operator returns true or false, depending on whether the condition is fulfilled and the object is of the specified type. After verifying whether the condition is true, a cast can be done because now this cast always succeeds
