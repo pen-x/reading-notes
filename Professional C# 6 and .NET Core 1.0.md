@@ -457,7 +457,7 @@ Notice:
 
 6. **Unsafe Code**: C# allows the use of **pointers** only in blocks of code that you have specifically marked for this purpose. The keyword to do this is **unsafe**. Methods, classes, structs and block of code can be marked as unsafe, but you cannot mark a local variable unsafe.
     - & means take the address of, and converts a value data type to a pointer — for example, int to *int. This operator is known as the address operator.
-    - * means get the content of this address, and converts a pointer to a value data type — for example, *float to float. This operator is known as the indirection operator (or the de-reference operator).
+    - \* means get the content of this address, and converts a pointer to a value data type — for example, *float to float. This operator is known as the indirection operator (or the de-reference operator).
     - It is not possible to declare a pointer to a class or an array; this is because doing so could cause problems for the garbage collector.
     - You can cast a pointer to any of the integer types. However, because an address occupies 4 bytes on 32-bit systems, casting a pointer to anything other than a uint, long, or ulong is almost certain to lead to overflow errors. If you are creating a 64-bit application, you need to cast the pointer to ulong.
     - If you want to maintain a pointer but not specify to what type of data it points, you can declare it as a pointer to a void - void*.
