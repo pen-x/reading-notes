@@ -331,3 +331,142 @@ Notice:
 6. **Is and As Operators**:
     - The as operator works similar to the cast operator within the class hierarchy—it returns a reference to the object. However, it never throws an InvalidCastException. Instead, this operator returns null in case the object is not of the type asked for.
     - Instead of using the as operator, you can use the is operator. The is operator returns true or false, depending on whether the condition is fulfilled and the object is of the specified type. After verifying whether the condition is true, a cast can be done because now this cast always succeeds
+
+## Chapter 5: Managed and Unmanaged Resources
+
+1. **Managed/Unmanaged Resources**: Using managed and unmanaged resources means objects that are stored on the **managed** or the **native** heap. Although the garbage collector frees up managed objects that are stored in the managed heap, it isn’t responsible for the objects in the native heap, such as **file handles**, **network connections**, and **database connections**. You have to free them on your own.
+
+2. **Memory Management**: Windows uses a system known as **virtual addressing**, in which the mapping from the memory address seen by your program to the actual location in hardware memory is entirely managed by Windows. As a result, each process of a 32-bit application sees 4GB of available memory, regardless of how much hardware memory you actually have in your computer.
+    - **Value Data Types**: 
+        - Somewhere inside a processor’s virtual memory is an area known as the **stack**. The stack stores value data types that are not members of objects.
+        - A **stack pointer** (a variable maintained by the operating system) identifies the next free location on the stack, it goes from high memory addresses to low addresses. 
+        - The compiler converts human-readable variable names into **memory addresses** that the processor understands.
+    - **Reference Data Types**:
+        - Another area of memory from the processor’s available memory is the **managed heap**, it stores reference data types and works under the control of the **garbage collector**.
+        - For "var customer = new Customer()", it allocates memory on the heap to store a Customer object, then it sets the value of the variable customer(on stack) to the address of the memory it has allocated to the new Customer object.
+        - By assigning the value of one reference variable to another of the same type, you have two variables that reference the same object in memory. 
+        - When a reference variable goes out of scope, it is removed from the stack, but the data for a referenced object is still sitting on the heap. The data remains until either the program terminates or the garbage collector removes it, which happens only when it is no longer referenced by any variables.
+    ![](/resources/stack-heap.png)
+
+3. **Garbage Collection**:
+    - When the garbage collector runs, it removes all those objects from the heap that are no longer referenced. The GC finds all referenced objects from a root table of references and continues to the tree of referenced objects.
+    - As soon as the garbage collector has freed all the objects it can, it compacts the heap by moving all the remaining objects to form one continuous block of memory. Of course, when the objects are moved about, all the references to those objects need to be updated with the correct new addresses, but the garbage collector handles that, too.
+    - When objects are created, they are placed within the managed heap. The first section of the heap is called the generation 0 section, or **gen 0**. Your objects remain there until the first collection of objects occurs through the garbage collection process. The objects that remain alive after this cleansing are compacted and then moved to the next section or generational part of the heap — the generation 1, or **gen 1**, section.
+
+4. **Weak Reference**: A weak reference allows the object to be created and used, but if the garbage collector happens to run, it collects the object and frees up the memory. After retrieving the strong reference successfully, you can use it in a normal way, and now it can’t be garbage collected because you have a strong reference again.
+    ```csharp
+    var weakReference = new WeakReference(new DataObject());
+
+    if (weakReference.IsAlive)
+    {
+        DataObject strongReference = weakReference.Target as DataObject;
+        if (stringReference != null)
+        {
+            // Use the strong reference.
+        }
+    }
+    else 
+    {
+        // Reference not available.
+    }
+    ```
+
+5. **Working with Unmanaged Resources**: You can use two mechanisms to automate the freeing of unmanaged resources.
+    - Declare a **destructor** (or **finalizer**) as a member of your class, **this is only called when GC runs**. Objects that do not have a destructor are removed from memory in one pass of the garbage collector, but objects that have destructors require two passes to be destroyed: The first pass calls the destructor without removing the object, and the second pass actually deletes the object. 
+        ```csharp
+            class MyClass
+            {
+                ~MyClass()
+                {
+                    // Finalizer implementation, only called when GC runs.
+                }
+            }
+        ```
+    - Implement the **System.IDisposable** interface in your class, **this can be called anytime**. The **using** keyword guarantee that Dispose is automatically called against an object that implements IDisposable when its reference goes out of scope.
+        ```csharp
+        class MyClass: IDisposable
+        {
+            public void Dispose()
+            {
+                // implementation
+            }
+        }
+
+        ResourceGobbler theInstance = null;
+        try
+        {
+            theInstance = new ResourceGobbler();
+            // do your processing
+        }
+        finally
+        {
+            theInstance?.Dispose();
+        }
+
+        // same as
+        using (var theInstance = new ResourceGobbler())
+        {
+            // do your processing
+        }
+        ```
+    -  Dispose sample: If you are creating a finalizer, you should also implement the IDisposable interface.
+        ```csharp
+        using System;
+      
+        public class ResourceHolder: IDisposable
+        {
+            private bool _isDisposed = false;
+            
+            public void Dispose()   // Clean up all managed and unmanaged resources.
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!_isDisposed)
+                {
+                    if (disposing)
+                    {
+                        // Cleanup managed objects by calling their
+                        // Dispose() methods.
+                    }
+                    // Cleanup unmanaged objects
+                }
+                _isDisposed = true;
+            }
+            
+            ~ResourceHolder()   // Should not attempt to access other managed objects because you can no longer be certain of their state.
+            {
+                Dispose (false);
+            }
+            
+            public void SomeMethod()
+            {
+                // Ensure object not already disposed before execution of any method
+                if(_isDisposed)
+                {
+                    throw new ObjectDisposedException("ResourceHolder");
+                }
+                
+                // method implementation
+            }
+        }
+        ```
+
+6. **Unsafe Code**: C# allows the use of **pointers** only in blocks of code that you have specifically marked for this purpose. The keyword to do this is **unsafe**. Methods, classes, structs and block of code can be marked as unsafe, but you cannot mark a local variable unsafe.
+    - & means take the address of, and converts a value data type to a pointer — for example, int to *int. This operator is known as the address operator.
+    - * means get the content of this address, and converts a pointer to a value data type — for example, *float to float. This operator is known as the indirection operator (or the de-reference operator).
+    - It is not possible to declare a pointer to a class or an array; this is because doing so could cause problems for the garbage collector.
+    - You can cast a pointer to any of the integer types. However, because an address occupies 4 bytes on 32-bit systems, casting a pointer to anything other than a uint, long, or ulong is almost certain to lead to overflow errors. If you are creating a 64-bit application, you need to cast the pointer to ulong.
+    - If you want to maintain a pointer but not specify to what type of data it points, you can declare it as a pointer to a void - void*.
+    - The general rule is that adding a number X to a pointer to type T with value P gives the result P + X*(sizeof(T)). 
+        ```csharp
+        double* pD1 = (double*)1243324;
+        double* pD2 = (double*)1243300;
+        long L = pD1-pD2;               // gives the result 3 (=24/sizeof(double))
+        ```
+    -  C# defines an arrow operator -> that enables you to access members of structs through pointers.
+
+7. **Platform Invoke**: To reuse an unmanaged library that doesn’t contain COM objects—it contains only exported functions—you can use Platform Invoke (P/Invoke). With P/Invoke, the CLR loads the DLL that includes the function that should be called and marshals the parameters.
