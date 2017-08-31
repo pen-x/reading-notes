@@ -374,13 +374,13 @@ Notice:
 5. **Working with Unmanaged Resources**: You can use two mechanisms to automate the freeing of unmanaged resources.
     - Declare a **destructor** (or **finalizer**) as a member of your class, **this is only called when GC runs**. Objects that do not have a destructor are removed from memory in one pass of the garbage collector, but objects that have destructors require two passes to be destroyed: The first pass calls the destructor without removing the object, and the second pass actually deletes the object. 
         ```csharp
-            class MyClass
+        class MyClass
+        {
+            ~MyClass()
             {
-                ~MyClass()
-                {
-                    // Finalizer implementation, only called when GC runs.
-                }
+                // Finalizer implementation, only called when GC runs.
             }
+        }
         ```
     - Implement the **System.IDisposable** interface in your class, **this can be called anytime**. The **using** keyword guarantee that Dispose is automatically called against an object that implements IDisposable when its reference goes out of scope.
         ```csharp
