@@ -320,13 +320,13 @@ Notice:
     - Cannot define types as protected, private, or protected internal because these visibility levels would be meaningless for a type contained in a namespace. Hence, these visibilities can be applied only to members.
     - If you have a nested type, the inner type is always able to see all members of the outer type.
 
-| Modifier | Applies to | Description |
-| -------- | ---------- | ----------- |
-| public | Any types or members | The item is visible to any other code. |
-| protected | Any member of a type, and any nested type | The item is visible only to any derived type. |
-| internal | Any types or members | The item is visible only within its containing assembly. |
-| private | Any member of a type, and any nested type | The item is visible only inside the type to which it belongs. |
-| protected internal | Any member of a type, and any nested type | The item is visible to any code within its containing assembly and to any code inside a derived type. |
+    Modifier | Applies to | Description
+    -------- | ---------- | -----------
+    public | Any types or members | The item is visible to any other code.
+    protected | Any member of a type, and any nested type | The item is visible only to any derived type.
+    internal | Any types or members | The item is visible only within its containing assembly.
+    private | Any member of a type, and any nested type | The item is visible only inside the type to which it belongs.
+    protected internal | Any member of a type, and any nested type | The item is visible to any code within its containing assembly and to any code inside a derived type.
 
 6. **Is and As Operators**:
     - The as operator works similar to the cast operator within the class hierarchy—it returns a reference to the object. However, it never throws an InvalidCastException. Instead, this operator returns null in case the object is not of the type asked for.
@@ -470,3 +470,59 @@ Notice:
     -  C# defines an arrow operator -> that enables you to access members of structs through pointers.
 
 7. **Platform Invoke**: To reuse an unmanaged library that doesn’t contain COM objects—it contains only exported functions—you can use Platform Invoke (P/Invoke). With P/Invoke, the CLR loads the DLL that includes the function that should be called and marshals the parameters.
+
+## Chapter 6: Generics
+
+1. **Generics Overview**: With generics, you can create classes and methods that are independent of contained types. 
+    - **Performance**: Using value types with non-generic collection classes results in boxing and unboxing when the value type is converted to a reference type, and vice versa.
+    - **Type Safety**: Another feature of generics is type safety, the generic type T defines what types are allowed. 
+    - **Code Bloat**: When a generic class definition goes into the assembly, instantiating generic classes with specific types doesn’t duplicate these classes in the IL code. However, when the generic classes are compiled by the JIT compiler to native code, a new class for every specific value type is created. Reference types share all the same implementation of the same native class, but since every value type can have different memory requirements, a new class for every value type is instantiated.
+
+2. **Generics Features**: 
+    - **Default values**: It is not possible to assign **null** to generic types. That’s because a generic type can also be instantiated as a value type, and null is allowed only with reference types. With the **default** keyword, null is assigned to reference types and 0 is assigned to value types.
+    - **Constrains**: The **where** clause defines the requirement to implement the interface IDocument.
+        Constraint | Description
+        ---------- | -----------
+        where T: **struct** | With a struct constraint, type T must be a value type.
+        where T: **class** | The class constraint indicates that type T must be a reference type.
+        where T: **IFoo** | Specifies that type T is required to implement interface IFoo.
+        where T: **new()** | A constructor constraint; specifies that type T must have a default constructor.
+        where T1: **T2** | With constraints it is also possible to specify that type T1 derives from a generic type T2.
+    - **Inheritance**: The requirement is that the generic types of the interface must be **repeated**, or the type of the base class must be **specified**. You can also create a **partial specialization**.
+        ```csharp
+        public class Base<T> {}
+        public class Derived<T>: Base<string> {}
+
+        public abstract class Calc<T> {}
+        public class IntCalc: Calc<int> {}
+
+        public class Query<TRequest, TResult> {}
+        public StringQuery<TRequest>: Query<TRequest, string> {}
+        ```
+3. **Covariance and Contra-variance**:  Covariance and contra-variance are used for the conversion of types with arguments and return types.
+    - Parameter types are covariant. 
+    - Return types of methods are contra-variant.
+    - A generic interface is **covariant (Interface\<Derived\> => Interface\<Base\>)** if the generic type is annotated with the **out** keyword. This also means that type T is allowed only with return types. 
+        ```csharp
+        IEnuremable<Rectangle> rectangles = RectangleGenerator();
+        IEnuremable<Shape> shapes = rectangles;
+        ```
+    - A generic interface is **contra-variant (Interface\<Base\> => Interface\<Derived\>)** if the generic type is annotated with the **in** keyword. This way, the interface is only allowed to use generic type T as input to its methods.
+        ```csharp
+        Action<Shape> shapeDisplay = s => Console.WriteLine($"Width: {s.Width}, Height: {s.Height}");
+        Action<Rectangle> rectangleDisplay = shapeDisplay;
+        ```
+    - If a read-write indexer is used with the IIndex interface, the generic type T is passed to the method and retrieved from the method. This is not possible with covariance; the generic type must be defined as **invariant**. Defining the type as invariant is done without out and in annotations.
+
+4. **Generic Structs**: Structs can be generic as well, one example is **Nullable<T>** where the generic type T needs to be a struct.
+    - Non-nullable types can be converted to nullable types, **an implicit conversion** is possible where casting is not required.
+    - A conversion from a nullable type to a non-nullable type can fail. If the nullable type has a null value and the null value is assigned to a non-nullable type, then an exception of type InvalidOperationException is thrown, so **an explicit conversion** is required.
+    ```csharp
+    int y1 = 4;
+    int? x1 = y1;
+    int x2 = (int)x1;
+    ```
+
+5. **Generic Methods**: With a generic method, the generic type is defined with the method declaration. 
+    - Generic methods can be defined within non-generic classes.
+    - As with generic classes, you can restrict generic types with the where clause. You can use the same clause with generic methods that you use with generic classes.
