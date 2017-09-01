@@ -481,6 +481,7 @@ Notice:
 2. **Generics Features**: 
     - **Default values**: It is not possible to assign **null** to generic types. That’s because a generic type can also be instantiated as a value type, and null is allowed only with reference types. With the **default** keyword, null is assigned to reference types and 0 is assigned to value types.
     - **Constrains**: The **where** clause defines the requirement to implement the interface IDocument.
+    
         Constraint | Description
         ---------- | -----------
         where T: **struct** | With a struct constraint, type T must be a value type.
