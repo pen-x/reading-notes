@@ -467,7 +467,15 @@ Notice:
         double* pD2 = (double*)1243300;
         long L = pD1-pD2;               // gives the result 3 (=24/sizeof(double))
         ```
-    -  C# defines an arrow operator -> that enables you to access members of structs through pointers.
+    - C# defines an arrow operator -> that enables you to access members of structs through pointers.
+    - It is not possible to create **pointers to classes** because during garbage collection, the garbage collector might move object to a new location. The solution is to use the **fixed** keyword, which tells the garbage collector that there may be pointers referencing members of certain objects, so those objects must not be moved.
+        ```csharp
+        var myObject = new MyClass();
+        fixed (long* pObject = &(myObject.X))
+        {
+            // do something
+        }
+        ```
 
 7. **Platform Invoke**: To reuse an unmanaged library that doesn’t contain COM objects—it contains only exported functions—you can use Platform Invoke (P/Invoke). With P/Invoke, the CLR loads the DLL that includes the function that should be called and marshals the parameters.
 
@@ -515,7 +523,7 @@ Notice:
         ```
     - If a read-write indexer is used with the IIndex interface, the generic type T is passed to the method and retrieved from the method. This is not possible with covariance; the generic type must be defined as **invariant**. Defining the type as invariant is done without out and in annotations.
 
-4. **Generic Structs**: Structs can be generic as well, one example is **Nullable<T>** where the generic type T needs to be a struct.
+4. **Generic Structs**: Structs can be generic as well, one example is **Nullable\<T\>** where the generic type T needs to be a struct.
     - Non-nullable types can be converted to nullable types, **an implicit conversion** is possible where casting is not required.
     - A conversion from a nullable type to a non-nullable type can fail. If the nullable type has a null value and the null value is assigned to a non-nullable type, then an exception of type InvalidOperationException is thrown, so **an explicit conversion** is required.
     ```csharp
@@ -527,3 +535,79 @@ Notice:
 5. **Generic Methods**: With a generic method, the generic type is defined with the method declaration. 
     - Generic methods can be defined within non-generic classes.
     - As with generic classes, you can restrict generic types with the where clause. You can use the same clause with generic methods that you use with generic classes.
+
+## Chapter 7: Arrays and Tuples
+
+1. **Arrays**:
+    - **Simple Arrays**:
+        - An array is a reference type, so memory on the heap must be allocated.
+        - An array cannot be resized after its size is specified without copying all the elements, you must set the number of elements during initializing.
+        - C# provides a shorter form for initialization.
+        ```csharp
+        int[] array = new int[4];
+        int[] array = new int[4] {4, 7, 11, 12};
+        int[] array = {4, 7, 11, 12};
+        ```
+    - **Multidimensional Arrays**:
+        ```csharp
+        int[,,] threedim = new int[3, 3, 3];
+        ```
+    - **Jagged Arrays**: With a jagged array every row can have a different size. To initialize the jagged array, only the size that defines the number of rows in the first pair of brackets is set. The second brackets that define the number of elements inside the row are kept empty because every row has a different number of elements.
+        ```csharp
+        int[][] jagged = new int[3][];
+        jagged[0] = new int[2] {1, 2};
+        jagged[1] = new int[6] { 3, 4, 5, 6, 7, 8 };
+        jagged[2] = new int[3] { 9, 10, 11 };
+        ``` 
+
+2. **Array Class**: Declaring an array with brackets is a C# notation using the Array class, using the C# syntax behind the scenes creates a new class that derives from the abstract base class Array.
+    - The Array class is abstract, so you cannot create an array by using a constructor, you can use the static **CreateInstance** method instead. You can set values with the **SetValue** method, and read values with the **GetValue** method, you can also cast the created array to one using C# notation.
+        ```csharp
+        Array array = Array.CreateInstance(typeof(int), 1);
+        array.SetValue(33, 0);
+        Console.WriteLine(array.GetValue(0));
+
+        int[] array2 = (int[])array;
+        ```
+    - The array implements the interface **ICloneable**. The **Clone** method that is defined with this interface creates a shallow copy of the array. For value types all values are copied, for reference types only the references are copied, not the elements.
+    - **Array.Copy** also creates a shallow copy, however with this method you must pass an existing array with the same type and enough elements.
+    - The Array class uses the Quicksort algorithm to sort the elements in the array. The **Sort** method requires the interface **IComparable** to be implemented by the elements in the array. Simple types such as System.String and System.Int32 implement IComparable.
+    - **Array.Sort** can also accept a second parameter which implements **IComparer** interface. This interface is independent of the class to compare and needs two arguments that should be compared.
+
+3. **Arrays as Parameters**:
+    - With arrays, **covariance** is supported. This means that an array can be declared as a base type and elements of derived types can be assigned to the elements. But notice that array covariance is only possible with reference types, not with value types.
+    - **ArraySegment\<T\>** represents a segment of an array, it contains information about the segment (the offset and count). If elements of the array segment are changed, the changes can be seen in the original array.
+
+4. **Enumerators**:
+    - The array or collection implements the **IEnumerable** interface with the **GetEnumerator** method. The GetEnumerator method returns an enumerator implementing the **IEnumerator** interface.
+
+        ![](resources\enumerable.png)
+    - IEnumerator defines the property **Current** to return the element where the cursor is positioned, and the method **MoveNext** to move to the next element of the collection. MoveNext returns true if there’s an element, and false if no more elements are available.
+    - The **foreach** statement invokes the GetEnumerator method of a collection to iterate through its elements.
+        ```csharp
+        IEnumerator<Person> enumerator = persons.GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            Person p = enumerator.Current;
+            WriteLine(p);
+        }
+        ```
+    - C# provides **yield** statement for creating enumerators easily. A method or property that contains yield statements is also known as an iterator block. An iterator block must be declared to return an IEnumerator or IEnumerable interface, or the generic versions of these interfaces. This block may contain multiple yield return or yield break statements; a return statement is not allowed.
+        ```csharp
+        public IEnumerator<string> GetEnumerator()
+        {
+            yield return"Hello";
+            yield return"World";
+        }
+        ```
+    - With the yield statement you can also do more complex things, such as return an enumerator from yield return.
+
+5. **Tuples**: Whereas arrays combine objects of the same type, tuples can combine objects of different types. The .NET Framework defines eight generic Tuple classes and one static Tuple class that act as a factory of tuples. The different generic Tuple classes support a different number of elements—for example, Tuple<T1> contains one element, Tuple<T1, T2> contains two elements, and so on.  
+    ```csharp
+    var tuple = Tuple.Create<string, string, string, int, int, int, double,
+        Tuple<int, int>>("Stephanie","Alina","Nagel", 2009, 6, 2, 1.37,
+            Tuple.Create<int, int>(52, 3490));
+    ```
+
+6. **Structural Comparison**: 
+    - Both arrays and tuples implement the interfaces IStructuralEquatable and IStructuralComparable. These interfaces compare not only references but also the content. This interface is implemented explicitly, so it is necessary to cast the arrays and tuples to this interface on use. IStructuralEquatable is used to compare whether two tuples or arrays have the same content; IStructuralComparable is used to sort tuples or arrays.
